@@ -1,152 +1,112 @@
-local Material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
+local Material = loadstring(game:HttpGet("https://github.com/icewinrages/roblox/blob/master/Module.lua"), "MaterialLua")()
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
 
-local X = Material.Load({
-	Title = "ChibuHub",
-	Style = 3,
-	SizeX = 500,
-	SizeY = 350,
-	Theme = "Light",
-	ColorOverrides = {
-		MainFrame = Color3.fromRGB(235,235,235)
-	}
+local ui = Material.Load({
+    Title = "Mining Inc Xray",
+    Style = 3,
+    SizeX = 300,
+    SizeY = 300,
+    Theme = "Dark"
 })
 
-local Y = X.New({
-	Title = "1"
+local main = ui.New({
+    Title = "Main"
 })
 
-local Z = X.New({
-	Title = "2"
+local XrayOutLineColor = Color3.new(0, 0, 0)
+
+main.ColorPicker({
+    Text = "XRay Outline Color",
+    Callback = function(color)
+        XrayOutLineColor = color
+    end,
+    Default = XrayOutLineColor
 })
 
-local A = Y.Button({
-	Text = "Kill All",
-	Callback = function()
-		print("hello")
-	end,
-	Menu = {
-		Information = function(self)
-			X.Banner({
-				Text = "This function can get you banned in up-to-date servers; use at your own risk."
-			})
-		end
-	}
+local function getAllOre()
+    local ores = {}
+    for _, v in ipairs(game:GetService("Workspace").Minerals:GetChildren()) do
+        local oreName = v.Type.Value
+        table.insert(ores, {model = v, oreName = oreName})
+    end
+    return ores
+end
+
+local function drawOreEsp(ore)
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "OreEsp"
+    billboardGui.Adornee = ore.model
+    billboardGui.AlwaysOnTop = true
+    billboardGui.Size = UDim2.new(0, 100, 0, 100)
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.Parent = ore.model
+
+    local esp = Instance.new("TextLabel", billboardGui)
+    esp.Name = "Text"
+    esp.Size = UDim2.new(0, 100, 0, 10)
+    esp.BackgroundTransparency = 1
+    esp.Text = ore.oreName
+    esp.TextColor3 = ore.model.Color
+    esp.TextStrokeColor3 = XrayOutLineColor
+    esp.TextStrokeTransparency = 0
+    esp.TextScaled = true
+    esp.TextWrapped = true
+    esp.TextXAlignment = Enum.TextXAlignment.Center
+    esp.TextYAlignment = Enum.TextYAlignment.Center
+    esp.TextSize = 10
+
+    print("Drawed Esp", "Ore Name: " .. ore.oreName)
+end
+
+local function deleteOreEsp()
+    for _, v in ipairs(workspace.Minerals:GetChildren()) do
+        if v:FindFirstChild("OreEsp") then
+            v.OreEsp:Destroy()
+        end
+    end
+end
+
+local function updateOreEsp()
+    deleteOreEsp()
+    for _, v in ipairs(getAllOre()) do
+        drawOreEsp(v)
+    end
+end
+
+main.Toggle({
+    Text = "Toggle Xray",
+    Callback = function(value)
+        if value then
+            updateOreEsp()
+            -- Обновление каждые 60 секунд
+            while main:GetToggle("Toggle Xray") do
+                updateOreEsp()
+                wait(60)
+            end
+        else
+            deleteOreEsp()
+        end
+    end
 })
 
-local B = Y.Toggle({
-	Text = "I'm a switch",
-	Callback = function(Value)
-		print(Value)
-	end,
-	Enabled = false
+main.Toggle({
+    Text = "Fullbright",
+    Callback = function(value)
+        if value then 
+            Lighting.Ambient = Color3.new(1, 1, 1)
+            Lighting.ColorShift_Bottom = Color3.new(1, 1, 1)
+            Lighting.ColorShift_Top = Color3.new(1, 1, 1)
+        else
+            Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
+            Lighting.ColorShift_Bottom = Color3.new(0.5, 0.5, 0.5)
+            Lighting.ColorShift_Top = Color3.new(0.5, 0.5, 0.5)
+        end
+    end
 })
 
-local C = Y.Slider({
-	Text = "Slip and... you get the idea",
-	Callback = function(Value)
-		print(Value)
-	end,
-	Min = 200,
-	Max = 400,
-	Def = 300
-})
-
-local D = Y.Dropdown({
-	Text = "Dropping care package",
-	Callback = function(Value)
-		print(Value)
-	end,
-	Options = {
-		"Floor 1",
-		"Floor 2",
-		"Floor 3",
-		"Floor 4",
-		"Floor 5"
-	},
-	Menu = {
-		Information = function(self)
-			X.Banner({
-				Text = "Test alert!"
-			})
-		end
-	}
-})
-
-local E = Y.ChipSet({
-	Text = "Chipping away",
-	Callback = function(ChipSet)
-		table.foreach(ChipSet, function(Option, Value)
-			print(Option, Value)
-		end)
-	end,
-	Options = {
-		ESP = true,
-		TeamCheck = false,
-		UselessBool = {
-			Enabled = true,
-			Menu = {
-				Information = function(self)
-					X.Banner({
-						Text = "This bool has absolutely no purpose whatsoever."
-					})
-				end
-			}
-		}
-	}
-})
-
-local F = Y.DataTable({
-	Text = "Chipping away",
-	Callback = function(ChipSet)
-		table.foreach(ChipSet, function(Option, Value)
-			print(Option, Value)
-		end)
-	end,
-	Options = {
-		ESP2 = true,
-		TeamCheck2 = false,
-		UselessBool2 = {
-			Enabled = true,
-			Menu = {
-				Information = function(self)
-					X.Banner({
-						Text = "This bool ALSO has absolutely no purpose. Sorry."
-					})
-				end
-			}
-		}
-	}
-})
-
-local G = Y.ColorPicker({
-	Text = "ESP Colour",
-	Default = Color3.fromRGB(0,255,110),
-	Callback = function(Value)
-		print("RGB:", Value.R * 255, Value.G * 255, Value.B * 255)
-	end,
-	Menu = {
-		Information = function(self)
-			X.Banner({
-				Text = "This changes the color of your ESP."
-			})
-		end
-	}
-})
-
-local H = Y.TextField({
-	Text = "Country",
-	Callback = function(Value)
-		print(Value)
-	end,
-	Menu = {
-		GB = function(self)
-			self.SetText("GB")
-		end,
-		JP = function(self)
-			self.SetText("JP")
-		end,
-		KO = function(self)
-			self.SetText("KO")
-		end
-	}
-})
+-- Поддержка мобильных устройств
+if game:GetService("User InputService").TouchEnabled then
+    ui.SizeX = 200
+    ui.SizeY = 200
+end
